@@ -1,0 +1,5 @@
+move-contracts/singuvault/build/
+move-contracts/singuvault/Move.lock
+move-contracts/singuvault/Published.toml
+*.log
+.DS_Store
