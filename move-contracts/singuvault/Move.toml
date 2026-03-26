@@ -13,6 +13,6 @@ singuvault = "0x0"
 
 [environments.testnet_utopia]
 chain-id = "4c78adac"
-original-published-id = "0x0"
-latest-published-id = "0x0"
+original-published-id = "0xfa395f327703caef26d641c217922353f417e357cd65305b05bdd4a0656d773c"
+latest-published-id = "0xfa395f327703caef26d641c217922353f417e357cd65305b05bdd4a0656d773c"
 published-version = "1"
