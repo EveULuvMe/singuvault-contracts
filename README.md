@@ -2,7 +2,7 @@
 
 Sui Move contracts for the Singu Vault reward flow.
 
-This repository is the on-chain backend for Singu Vault. It receives Singu Hunt `AchievementNFT` objects, verifies backend-signed redemption tickets, and routes the player into one of two outcomes:
+This repository is the on-chain backend for Singu Vault. It verifies backend-signed redemption tickets referencing Singu Hunt `AchievementNFT` object IDs (the NFT itself is not consumed or transferred by this contract) and routes the player into one of two outcomes:
 
 1. immediate `EVE` redemption
 2. stake-pass issuance, followed by locked staking and later claim
@@ -68,6 +68,14 @@ Consumes a `StakePass`, locks the supplied coins, and creates a `StakePosition<U
 `claim_stake_position<USDC>`
 After unlock, returns principal and mints `EULM`.
 
+### View Functions
+
+`total_nfts_redeemed` `total_eve_minted` `total_eulm_minted` `total_passes_issued` `total_positions`
+Counters exposed for frontend or indexer consumption.
+
+`is_nft_redeemed`
+Returns whether a given NFT object ID has already been redeemed.
+
 ### Contract Flow
 
 ```text
@@ -123,6 +131,8 @@ The current `singuvault-app` expects env / config values for:
 If the package is republished or the shared vault object is re-initialized, the frontend must be updated to match the new package ID and state object ID.
 
 ### Build And Publish
+
+The current `Move.toml` has an empty `[dependencies]` section. If building from a fresh clone, you may need to restore the Sui framework dependency (e.g. `Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "testnet-v1.66.2" }`).
 
 ```bash
 cd move-contracts/singuvault
@@ -210,6 +220,7 @@ sui client call \
 
 - `VITE_SINGUVAULT_PACKAGE_ID`
 - `VITE_VAULT_STATE_ID`
+- `VITE_SUI_RPC_URL`
 - `VITE_EVE_COIN_TYPE`
 - `VITE_USDC_COIN_TYPE`
 - `VITE_REDEEM_API_URL`
@@ -221,6 +232,8 @@ cd move-contracts/singuvault
 sui move build
 sui client publish --gas-budget 200000000
 ```
+
+如果從全新 clone 編譯，可能需要在 `Move.toml` 的 `[dependencies]` 補上 Sui framework 依賴。
 
 發佈後先 `initialize`，再 `set_ticket_signer`。
 
