@@ -1,18 +1,11 @@
 [package]
 name = "singuvault"
-edition = "2024.beta"
+edition = "2024"
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "testnet-v1.66.2" }
 
 [addresses]
 singuvault = "0x0"
 
 [dev-addresses]
 singuvault = "0x0"
-
-[environments.testnet_utopia]
-chain-id = "4c78adac"
-original-published-id = "0xfa395f327703caef26d641c217922353f417e357cd65305b05bdd4a0656d773c"
-latest-published-id = "0xfa395f327703caef26d641c217922353f417e357cd65305b05bdd4a0656d773c"
-published-version = "1"
