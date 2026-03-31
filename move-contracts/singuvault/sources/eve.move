@@ -1,17 +1,17 @@
-/// $LUX — Singu family reward token for Eve U Luv Me games
-module singuvault::lux {
+/// $EVE — Singu family reward token for Eve U Luv Me games
+module singuvault::eve {
     use sui::coin;
 
-    /// One-time witness for LUX coin
-    public struct LUX has drop {}
+    /// One-time witness for EVE coin
+    public struct EVE has drop {}
 
-    fun init(witness: LUX, ctx: &mut TxContext) {
+    fun init(witness: EVE, ctx: &mut TxContext) {
         let (treasury_cap, metadata) = coin::create_currency(
             witness,
             9,              // 9 decimals
-            b"LUX",         // symbol
-            b"Lux",         // name
-            b"Singu family reward token \xe2\x80\x94 Eve U Luv Me",
+            b"EVE",         // symbol
+            b"Eve",         // name
+            b"Singu family reward token for Eve U Luv Me",
             option::none(), // no icon URL yet
             ctx,
         );

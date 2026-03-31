@@ -3,7 +3,7 @@
 /// Product flow:
 ///   1. A SinguHunt award NFT can be redeemed once
 ///   2. The holder chooses either:
-///      - redeem to $LUX immediately, or
+///      - redeem to $EVE immediately, or
 ///      - redeem to a staking pass
 ///   3. A staking pass allows depositing $SUI + $USDC
 ///   4. After lock expiry, the player claims back principal plus $EULM reward
@@ -19,7 +19,7 @@ module singuvault::vault {
     use sui::table::{Self, Table};
 
     use singuvault::eulm::EULM;
-    use singuvault::lux::LUX;
+    use singuvault::eve::EVE;
     use singuvault::sig_verify;
 
     const E_ALREADY_REDEEMED: u64 = 1;
@@ -42,10 +42,10 @@ module singuvault::vault {
 
     public struct VaultState has key {
         id: UID,
-        lux_treasury_cap: TreasuryCap<LUX>,
+        eve_treasury_cap: TreasuryCap<EVE>,
         eulm_treasury_cap: TreasuryCap<EULM>,
         total_nfts_redeemed: u64,
-        total_lux_minted: u64,
+        total_eve_minted: u64,
         total_eulm_minted: u64,
         total_passes_issued: u64,
         total_positions: u64,
@@ -78,11 +78,11 @@ module singuvault::vault {
         vault_id: ID,
     }
 
-    public struct NftRedeemedForLux has copy, drop {
+    public struct NftRedeemedForEve has copy, drop {
         player: address,
         nft_id: ID,
         mode: u8,
-        lux_amount: u64,
+        eve_amount: u64,
     }
 
     public struct StakePassIssued has copy, drop {
@@ -115,16 +115,16 @@ module singuvault::vault {
     }
 
     public fun initialize(
-        lux_treasury_cap: TreasuryCap<LUX>,
+        eve_treasury_cap: TreasuryCap<EVE>,
         eulm_treasury_cap: TreasuryCap<EULM>,
         ctx: &mut TxContext,
     ) {
         let mut vault = VaultState {
             id: object::new(ctx),
-            lux_treasury_cap,
+            eve_treasury_cap,
             eulm_treasury_cap,
             total_nfts_redeemed: 0,
-            total_lux_minted: 0,
+            total_eve_minted: 0,
             total_eulm_minted: 0,
             total_passes_issued: 0,
             total_positions: 0,
@@ -149,11 +149,11 @@ module singuvault::vault {
         vault.ticket_signer_address = signer_address;
     }
 
-    public fun redeem_nft_for_lux(
+    public fun redeem_nft_for_eve(
         vault: &mut VaultState,
         nft_id: ID,
         mode: u8,
-        lux_amount: u64,
+        eve_amount: u64,
         expires_at_ms: u64,
         nonce: vector<u8>,
         signature: vector<u8>,
@@ -164,9 +164,9 @@ module singuvault::vault {
         assert!(vault.ticket_signer_address != @0x0, E_TICKET_SIGNER_NOT_SET);
         assert!(!table::contains(&vault.redeemed_nfts, nft_id), E_ALREADY_REDEEMED);
         assert!(clock::timestamp_ms(clock) <= expires_at_ms, E_TICKET_EXPIRED);
-        assert!(lux_amount > 0, E_ZERO_AMOUNT);
+        assert!(eve_amount > 0, E_ZERO_AMOUNT);
 
-        let msg = build_lux_ticket_message(sender, nft_id, mode, lux_amount, expires_at_ms, nonce);
+        let msg = build_eve_ticket_message(sender, nft_id, mode, eve_amount, expires_at_ms, nonce);
         let ticket_hash = hash::blake2b256(&msg);
         assert!(!table::contains(&vault.used_tickets, ticket_hash), E_TICKET_REPLAY);
         assert!(
@@ -181,15 +181,15 @@ module singuvault::vault {
         table::add(&mut vault.redeemed_nfts, nft_id, true);
         table::add(&mut vault.used_tickets, ticket_hash, true);
 
-        let minted = coin::mint(&mut vault.lux_treasury_cap, lux_amount, ctx);
+        let minted = coin::mint(&mut vault.eve_treasury_cap, eve_amount, ctx);
         vault.total_nfts_redeemed = vault.total_nfts_redeemed + 1;
-        vault.total_lux_minted = vault.total_lux_minted + lux_amount;
+        vault.total_eve_minted = vault.total_eve_minted + eve_amount;
 
-        event::emit(NftRedeemedForLux {
+        event::emit(NftRedeemedForEve {
             player: sender,
             nft_id,
             mode,
-            lux_amount,
+            eve_amount,
         });
         transfer::public_transfer(minted, sender);
     }
@@ -370,20 +370,20 @@ module singuvault::vault {
         });
     }
 
-    fun build_lux_ticket_message(
+    fun build_eve_ticket_message(
         sender: address,
         nft_id: ID,
         mode: u8,
-        lux_amount: u64,
+        eve_amount: u64,
         expires_at_ms: u64,
         nonce: vector<u8>,
     ): vector<u8> {
         let mut msg = vector::empty<u8>();
-        vector::append(&mut msg, b"lux");
+        vector::append(&mut msg, b"eve");
         vector::append(&mut msg, object::id_to_bytes(&nft_id));
         vector::append(&mut msg, bcs::to_bytes(&sender));
         vector::append(&mut msg, bcs::to_bytes(&mode));
-        vector::append(&mut msg, bcs::to_bytes(&lux_amount));
+        vector::append(&mut msg, bcs::to_bytes(&eve_amount));
         vector::append(&mut msg, bcs::to_bytes(&expires_at_ms));
         vector::append(&mut msg, nonce);
         msg
@@ -415,7 +415,7 @@ module singuvault::vault {
     }
 
     public fun total_nfts_redeemed(vault: &VaultState): u64 { vault.total_nfts_redeemed }
-    public fun total_lux_minted(vault: &VaultState): u64 { vault.total_lux_minted }
+    public fun total_eve_minted(vault: &VaultState): u64 { vault.total_eve_minted }
     public fun total_eulm_minted(vault: &VaultState): u64 { vault.total_eulm_minted }
     public fun total_passes_issued(vault: &VaultState): u64 { vault.total_passes_issued }
     public fun total_positions(vault: &VaultState): u64 { vault.total_positions }
